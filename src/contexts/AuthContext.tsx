@@ -1,9 +1,7 @@
-// contexts/AuthContext.tsx
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
 
-// 1. Định nghĩa kiểu dữ liệu
 interface User {
   id: string;
   name: string;
@@ -12,22 +10,19 @@ interface User {
 }
 
 interface AuthContextType {
-  user: User | null; // Thông tin user
-  loading: boolean; // Đang check auth
-  isAuthenticated: boolean; // Đã login chưa
-  logout: () => Promise<void>; // Function logout
+  user: User | null;
+  loading: boolean;
+  isAuthenticated: boolean;
+  logout: () => Promise<void>;
 }
 
-// 2. Tạo Context (kho chung)
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// 3. Provider - Component bao bọc app
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // 4. Khi app khởi động, check auth ngay
   useEffect(() => {
     checkAuth();
   }, []);
@@ -43,11 +38,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const data = await response.json();
         setUser(data.user);
         setIsAuthenticated(true);
-        console.log("✅ User authenticated:", data.user.email);
+        console.log("User authenticated:", data.user.email);
       } else {
         setUser(null);
         setIsAuthenticated(false);
-        console.log("❌ User not authenticated");
+        console.log("User not authenticated");
       }
     } catch (error) {
       console.error("Auth check error:", error);
@@ -73,7 +68,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // 5. Chia sẻ data cho toàn bộ app
   return (
     <AuthContext.Provider
       value={{
@@ -88,7 +82,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// 6. Hook để lấy data từ Context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
