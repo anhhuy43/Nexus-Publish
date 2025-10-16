@@ -1,12 +1,16 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { api } from "@/lib/api";
+import axios from "axios";
 
 interface User {
-  id: string;
-  name: string;
+  id: number;
   email: string;
+  name: string;
   googleId?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface AuthContextType {

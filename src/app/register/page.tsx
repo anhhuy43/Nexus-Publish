@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 import Link from "next/link";
 
 export default function RegisterPage() {
@@ -45,26 +46,13 @@ export default function RegisterPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("http://localhost:3000/api/auth/register", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-        }),
+      const { data } = await api.post("/auth/register", {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
       });
+      console.log("Sign up succesfully!", data);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to register");
-      }
-
-      const data = await response.json();
-      console.log("Register Success: ", data);
       router.push("/login");
     } catch (err: any) {
       console.error("Register Error:", err);

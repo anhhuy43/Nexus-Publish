@@ -5,6 +5,7 @@ import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { api } from "@/lib/api";
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
@@ -31,25 +32,11 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, googleProvider);
       const idToken = await result.user.getIdToken();
 
-      const response = await fetch(
-        "http://localhost:3000/api/auth/google-login",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ idToken }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to login with Google");
-      }
-
-      const data = await response.json();
+      const { data } = await api.post("/auth/google-login", {
+        token: idToken,
+      });
       console.log("Google Login Success: ", data);
+
       window.location.href = "/dashboard";
     } catch (err: any) {
       console.error("Google Login Error:", err);
@@ -71,25 +58,12 @@ export default function LoginPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("http://localhost:3000/api/auth/login", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
+      const { data } = await api.post("/auth/login", {
+        email: formData.email,
+        password: formData.password,
       });
+      console.log("Login with email Sucess: ", data);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to login");
-      }
-
-      const data = await response.json();
-      console.log("Email Login Success: ", data);
       window.location.href = "/dashboard";
     } catch (err: any) {
       console.error("Email Login Error:", err);

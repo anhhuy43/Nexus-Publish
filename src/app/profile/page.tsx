@@ -3,15 +3,19 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { api } from "@/lib/api";
+import axios from "axios";
 
 interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
   googleId?: string;
   createdAt: string;
   updatedAt: string;
 }
+
+type ProfileResp = { user: User };
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -21,28 +25,25 @@ export default function ProfilePage() {
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [router]);
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/user/profile", {
-        method: "GET",
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
+      const { data } = await api.get<ProfileResp>("/user/profile");
+      console.log("🚀 ~ fetchProfile ~ data:", data);
+      setUser(data.user);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) {
           router.push("/login");
           return;
         }
-        throw new Error("Failed to fetch profile");
+        setError(
+          (err.response?.data as any)?.message ?? err.message ?? "Unknown error"
+        );
+      } else {
+        setError(String(err));
       }
-
-      const data = await response.json();
-      setUser(data.user);
-    } catch (err: any) {
-      console.error("Profile fetch error:", err);
-      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -50,19 +51,10 @@ export default function ProfilePage() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        console.log("✅ Logout successful");
-        router.push("/login");
-      } else {
-        console.error("❌ Logout failed");
-      }
+      await api.post("/auth/logout");
+      router.push("/login");
     } catch (error) {
-      console.error("❌ Logout error:", error);
+      console.error("Logout error:", error);
     }
   };
 
